@@ -17,17 +17,27 @@ services:
       - ./ntfy/config:/etc/ntfy
     expose:
       - "80"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ntfy.rule=Host(`ntfy.example.com`)"
+      - "traefik.http.routers.ntfy.entrypoints=websecure"
+      - "traefik.http.routers.ntfy.tls=true"
+      - "traefik.http.services.ntfy.loadbalancer.server.port=80"
 
-  caddy:
-     image: caddy:alpine
-     restart: always
-     container_name: caddy
-     volumes:
-       - ./caddy/Caddyfile:/etc/caddy/Caddyfile
-       - ./caddy/certs:/certs
-       - ./caddy/config:/config
-       - ./caddy/data:/data
-       - ./caddy/sites:/srv
-     ports:
-       - 80:80
-       - 443:443
+  traefik:
+    image: traefik:v2.4
+    restart: always
+    container_name: traefik
+    command:
+      - "--api.insecure=true"
+      - "--providers.docker=true"
+      - "--entrypoints.web.address=:80"
+      - "--entrypoints.websecure.address=:443"
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8080:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "./traefik/acme.json:/acme.json"
+      - "./traefik/traefik.yml:/traefik.yml" # P2a89
