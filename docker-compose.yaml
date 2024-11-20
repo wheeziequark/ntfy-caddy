@@ -1,6 +1,8 @@
 services:
-  ntfy-server:
+
+  ntfy:
     restart: always
+    container_name: ntfy
     logging:
       driver: "json-file"
       options:
